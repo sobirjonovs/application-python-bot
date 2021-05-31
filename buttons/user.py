@@ -6,6 +6,12 @@ phone_share_button.add(
     KeyboardButton(request_contact=True, text="Telefon ulashish")
 )
 
+# REGISTER BUTTON
+register_button = ReplyKeyboardMarkup(resize_keyboard=True)
+register_button.add(
+    KeyboardButton(text="Ro'yxatdan o'tish")
+)
+
 # REMOVES THE REST KEYBOARD
 no_keyboard = ReplyKeyboardRemove()
 
