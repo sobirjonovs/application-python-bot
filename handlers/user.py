@@ -9,7 +9,7 @@ from queries import db
 
 @dp.message_handler(CommandStart())
 async def start(message, state):
-    isExist = db.select(table="reviews", what={'chat_id': message.chat.id}, one=True)
+    isExist = db.select(table="reviews", what="chat_id", condition={'chat_id': message.chat.id}, one=True)
 
     if isExist is not None:
         return await message.answer("Assalomu alaykum!")
