@@ -9,10 +9,6 @@ from queries import db
 
 @dp.message_handler(CommandStart())
 async def start(message, state):
-    isExist = db.select(table="reviews", what="chat_id", condition={'chat_id': message.chat.id}, one=True)
-
-    if isExist is not None:
-        return await message.answer("Assalomu alaykum!")
 
     nick_name = message.chat.first_name
     text = f"""
@@ -41,6 +37,13 @@ async def register(message, state):
 
 @dp.message_handler(state="sections")
 async def select_section(message, state):
+
+    isExist = db.select(table="reviews", what="chat_id", condition={'chat_id': message.chat.id, 'section': message.text}, one=True)
+
+    if isExist is not None:
+        await state.finish()
+        return await message.answer("Bundan ro'yxatdan o'tgansiz! /start", reply_markup=no_keyboard)
+
     await state.update_data({
         'section': message.text
     })
