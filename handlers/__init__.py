@@ -1,6 +1,6 @@
-from .user import dp, db, bot
+from .user import dp, db
 from .exceptions import dp
 
-__all__ = ['dp', 'db', 'bot']
+__all__ = ['dp', 'db']
 
 
