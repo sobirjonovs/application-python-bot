@@ -1,8 +1,9 @@
 from aiogram import types
+from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import CommandStart
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
-from api import get_categories, store_result, check_participant
+from api import get_categories, store_result, check_participant, get_child_categories, get_regions
 from buttons.user import phone_share_button, no_keyboard, register_button
 from exceptions.user_exceptions import TooLargeText
 from loader import dp, bot
@@ -34,26 +35,78 @@ quibusdam sed amet tempora.
 
 @dp.message_handler(text="Yo'nalishlar")
 async def sections(message, state):
-    text = "Iltimos, kerakli bo'limni tanlang."
+    text = "Iltimos, kerakli tanlovni tanlang."
     categories = get_categories()
     sections = ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 
     button = []
+    parents = {}
     for index, category in enumerate(categories):
+        parents[category['name']] = category['id']
         button.append(KeyboardButton(text=category['name']))
 
     sections.add(*button)
 
-    await state.set_state('select_section')
+    await state.update_data(parents)
+
+    await state.set_state('select_parent')
 
     await message.answer(text, reply_markup=sections)
 
 
+@dp.message_handler(state="select_parent")
+async def select_parent(message, state):
+    text = "Iltimos, kerakli bo'limni tanlang."
+    data = await state.get_data()
+    try:
+        parent_id = data[message.text]
+        await state.update_data({
+            "parent_id": parent_id
+        })
+        children = get_child_categories(parent_id)
+
+        if not children:
+            category = next(
+                filter(lambda category: message.text in category['name'], get_categories())
+            )
+            await state.finish()
+
+            await state.update_data({
+                "section": category['name'],
+                "sector_id": category['id']
+            })
+
+            inline_button = InlineKeyboardMarkup()
+            inline_button.add(
+                InlineKeyboardButton(text="A'zo bo'lish", callback_data="subscribe")
+            )
+
+            return await message.answer(text=re.sub(r'<p>|</p>', '', category['description']), reply_markup=inline_button)
+
+        sections = ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+
+        button = []
+        for index, category in enumerate(children):
+            button.append(KeyboardButton(text=category['name']))
+
+        sections.add(*button)
+
+        await state.set_state('select_section')
+
+        await message.answer(text, reply_markup=sections)
+    except:
+        pass
+
+
 @dp.message_handler(state="select_section")
 async def selection(message, state):
-    category = next(
-        filter(lambda category: message.text in category['name'], get_categories())
-    )
+    data = await state.get_data()
+    try:
+        category = next(
+            filter(lambda category: message.text in category['name'], get_child_categories(data['parent_id']))
+        )
+    except:
+        pass
 
     await state.finish()
 
@@ -85,6 +138,9 @@ async def select_section(callback: types.CallbackQuery, state):
         await state.finish()
         return await message.answer("Bundan ro'yxatdan o'tgansiz!", reply_markup=register_button)
 
+    await message.answer(
+        "<b>Qo'llanma</b>\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud ")
+
     await state.set_state("full_name")
     await message.answer("Iltimos to'liq ism sharifingizni kiriting")
 
@@ -109,12 +165,44 @@ async def upload_file(callback, state):
     await state.finish()
 
 
+@dp.callback_query_handler(state="select_region")
+async def confirm(callback: types.CallbackQuery, state):
+    await callback.answer()
+    message = callback.message
+    region_name = next(
+        filter(lambda region: int(callback.data) == region['id'], get_regions())
+    )
+
+    await state.update_data({
+        "region": region_name['name']
+    })
+
+    data = await state.get_data()
+
+    text = """
+Ism: {fullname}
+Kategoriya: {section}
+Telefon: {phone}
+Viloyat/Tuman: {region}
+
+<b>Ma'lumotlar to'g'riligini tasdiqlaysizmi?</b>
+""".format(**data)
+
+    confirm_button = InlineKeyboardMarkup(row_width=2)
+    confirm_button.row(
+        InlineKeyboardButton(text="Tasdiqlayman", callback_data="i_confirm"),
+        InlineKeyboardButton(text="Bekor qilish", callback_data="i_cancel"),
+    )
+
+    await message.answer(text=text, reply_markup=confirm_button)
+
+
 @dp.message_handler(content_types=types.ContentType.DOCUMENT, state="file_upload")
 async def confirm_button(message, state):
     file_url = await message.document.get_url()
     data = await state.get_data()
 
-    if not re.match("[a-zA-Z. -_\/:0-9]+\.pdf$", file_url):
+    if not re.match("[a-zA-Z. -_\/:0-9]+\.(pdf|docx|docs|doc)$", file_url):
         return await message.answer(text="PDF fayl tashla e!")
 
     data = {
@@ -128,21 +216,19 @@ async def confirm_button(message, state):
 
     await state.update_data(data)
 
-    text = """
-Ism: {fullname}
-Kategoriya: {section}
-Telefon: {phone}
+    regions = get_regions()
 
-<b>Ma'lumotlar to'g'riligini tasdiqlaysizmi?</b>
-""".format(**data)
+    sections = InlineKeyboardMarkup(row_width=2, resize_keyboard=True)
 
-    confirm_button = InlineKeyboardMarkup(row_width=2)
-    confirm_button.row(
-        InlineKeyboardButton(text="Tasdiqlayman", callback_data="i_confirm"),
-        InlineKeyboardButton(text="Bekor qilish", callback_data="i_cancel"),
-    )
+    button = []
+    for index, region in enumerate(regions):
+        button.append(InlineKeyboardButton(text=region['name'], callback_data=region['id']))
 
-    await message.answer(text=text, reply_markup=confirm_button)
+    sections.add(*button)
+
+    await state.set_state('select_region')
+
+    await message.answer(text="Iltimos, viloyat tanlang", reply_markup=sections)
 
 
 @dp.callback_query_handler(text="i_cancel", state="*")
