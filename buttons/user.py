@@ -9,7 +9,7 @@ phone_share_button.add(
 # REGISTER BUTTON
 register_button = ReplyKeyboardMarkup(resize_keyboard=True)
 register_button.add(
-    KeyboardButton(text="Yo'nalishlar")
+    KeyboardButton(text="Tanlov yo'nalishlar")
 )
 
 # REMOVES THE REST KEYBOARD

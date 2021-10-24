@@ -1,12 +1,13 @@
 from requests import get
 from requests import post
 
-BASE_API = "http://f43c-82-215-102-36.ngrok.io/api/"
+BASE_API = "https://9234-82-215-102-36.ngrok.io/api/"
 SECTIONS_API = BASE_API + 'sectors/all'
 STORE_RESULT = BASE_API + 'participant/add'
 CHECK_USER = BASE_API + 'participant/check'
 CHILD_SELECTORS = BASE_API + 'sectors/child_sector/'
 REGIONS = BASE_API + 'sectors/region'
+PARTICIPANT_FILE = BASE_API + 'participant/myfile'
 
 
 def get_categories():
@@ -14,10 +15,7 @@ def get_categories():
 
 
 def store_result(data: dict):
-    request = post(STORE_RESULT, data=data)
-    print(request.content[:300])
-
-    return request.json()
+    return post(STORE_RESULT, data=data).json()
 
 
 def check_participant(data: dict):
@@ -31,3 +29,7 @@ def get_child_categories(parent_id: int):
 
 def get_regions():
     return get(REGIONS).json()
+
+
+def get_file():
+    return get(PARTICIPANT_FILE).content.decode(encoding='utf-8')
