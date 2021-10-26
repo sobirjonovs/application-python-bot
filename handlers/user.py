@@ -20,7 +20,7 @@ async def start(message, state):
 
 @dp.message_handler(text="Tanlov yo'nalishlar")
 async def sections(message, state):
-    text = "Iltimos, kerakli tanlovni tanlang."
+    text = "Iltimos, kerakli tanlov yo'nalishini tanlang."
     categories = get_categories()
     sections = ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 
@@ -122,7 +122,7 @@ async def select_section(callback: types.CallbackQuery, state):
 
     if is_exists:
         await state.finish()
-        return await message.answer("Bundan ro'yxatdan o'tgansiz!", reply_markup=register_button)
+        return await message.answer("Bu tanlovdan ro'yxatdan o'tgansiz!", reply_markup=register_button)
 
     try:
         url = get_file()
@@ -133,10 +133,10 @@ async def select_section(callback: types.CallbackQuery, state):
         path = myFile / 'Tanlov anketasi.doc'
         url = open(path.name, 'rb')
         await message.reply_document(document=url,
-                                     caption="<b>Qo'llanma</b>\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud ")
+                                     caption="<b>Qo'llanma</b>\n\nTanlovda qatnashish uchun siz: \n1. Ismingiz;\n2. Yashash joyingiz;\n3. Telefon raqamingiz;\n4. Yuqoridagi anketani to'ldirib, PDF formatda tashlashingiz kerak bo'ladi.")
 
     await state.set_state("full_name")
-    await message.answer("Iltimos to'liq ism sharifingizni kiriting", reply_markup=no_keyboard)
+    await message.answer("Iltimos, to'liq ism-sharifingizni kiriting", reply_markup=no_keyboard)
 
 
 @dp.message_handler(state="phone", content_types=types.ContentType.CONTACT)
@@ -146,7 +146,7 @@ async def send_phone(message, state):
         'phone': phone
     })
     await state.set_state("file_upload")
-    await message.answer("Fayl yuklang", reply_markup=no_keyboard)
+    await message.answer("Iltimos, to'ldirgan anketangizni PDF fayl ko'rinishida yuboring (5MB dan oshmasin)", reply_markup=no_keyboard)
 
 
 @dp.callback_query_handler(text="i_confirm", state="*")
@@ -173,7 +173,7 @@ async def confirm(callback: types.CallbackQuery, state):
     })
 
     await state.set_state("phone")
-    await message.answer("Iltimos telefon raqamingizni ulashing", reply_markup=phone_share_button)
+    await message.answer("Iltimos, telefon raqamingizni ulashing", reply_markup=phone_share_button)
 
 
 @dp.message_handler(content_types=types.ContentType.DOCUMENT, state="file_upload")
@@ -251,7 +251,7 @@ async def send_full_name(message, state):
 
     await state.set_state('select_region')
 
-    await message.answer(text="Iltimos, viloyat tanlang", reply_markup=sections)
+    await message.answer(text="Iltimos, kerakli viloyatni tanlang", reply_markup=sections)
 
 
 @dp.message_handler(state="*", commands=['cancel'])
