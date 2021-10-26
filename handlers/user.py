@@ -18,7 +18,7 @@ async def start(message, state):
     await message.answer(text, reply_markup=register_button)
 
 
-@dp.message_handler(text="Tanlov yo'nalishlar")
+@dp.message_handler(text="Tanlov yo'nalishlari")
 async def sections(message, state):
     text = "Iltimos, kerakli tanlov yo'nalishini tanlang."
     categories = get_categories()
