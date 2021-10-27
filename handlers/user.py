@@ -225,7 +225,7 @@ Viloyat/Tuman: {region}
 async def cancel_i(callback: types.CallbackQuery, state):
     await callback.answer()
     await state.finish()
-    await callback.message.answer(text="Yo'nalishlardan birini tanla", reply_markup=register_button)
+    await callback.message.answer(text="Iltimos, tanlov yo'nalishlaridan birini tanlang.", reply_markup=register_button)
 
 
 @dp.message_handler(state="full_name")
