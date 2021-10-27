@@ -133,7 +133,7 @@ async def select_section(callback: types.CallbackQuery, state):
         path = myFile / 'Tanlov anketasi.doc'
         url = open(path.name, 'rb')
         await message.reply_document(document=url,
-                                     caption="<b>Qo'llanma</b>\n\nTanlovda qatnashish uchun siz: \n1. Ismingiz;\n2. Yashash joyingiz;\n3. Telefon raqamingiz;\n4. Yuqoridagi anketani to'ldirib, PDF formatda tashlashingiz kerak bo'ladi.")
+                                     caption="<b>Qo'llanma</b>\n\nTanlovda qatnashish uchun siz: \n1. Ism-sharifingiz;\n2. Yashash joyingiz;\n3. Telefon raqamingiz;\n4. Yuqoridagi anketani to'ldirib, PDF formatda tashlashingiz kerak bo'ladi.")
 
     await state.set_state("full_name")
     await message.answer("Iltimos, to'liq ism-sharifingizni kiriting", reply_markup=no_keyboard)
@@ -146,7 +146,7 @@ async def send_phone(message, state):
         'phone': phone
     })
     await state.set_state("file_upload")
-    await message.answer("Iltimos, to'ldirgan anketangizni PDF fayl ko'rinishida yuboring (5MB dan oshmasin)", reply_markup=no_keyboard)
+    await message.answer("Iltimos, ijodiy ishingiz va to‘ldirgan anketangizni PDF fayl ko‘rinishida yuboring.(5MB dan oshmasin)", reply_markup=no_keyboard)
 
 
 @dp.callback_query_handler(text="i_confirm", state="*")
@@ -182,12 +182,12 @@ async def confirm_button(message: types.Message, state):
     file_url = await file.get_url()
 
     if file.file_size // 8000 > 625:
-        return await message.answer("5 MB dan katta bo'lmasin!")
+        return await message.answer("Faylning o'lchami 5 MB dan katta bo'lmasin!")
 
     data = await state.get_data()
 
-    if not re.match("[a-zA-Z. -_\/:0-9]+\.pdf$", file_url):
-        return await message.answer(text="PDF fayl tashla e!")
+    if not re.match("[a-zA-Z. -_/:0-9]+\.pdf$", file_url, re.IGNORECASE):
+        return await message.answer(text="Iltimos, PDF fayl yuboring.")
 
     data = {
         "file": file_url,
@@ -204,7 +204,7 @@ async def confirm_button(message: types.Message, state):
     data = await state.get_data()
 
     text = """
-Ism: {fullname}
+Ism-sharif: {fullname}
 Kategoriya: {section}
 Telefon: {phone}
 Viloyat/Tuman: {region}
